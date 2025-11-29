@@ -287,6 +287,9 @@ function App() {
           onAssign={handleAssign}
           players={players}
           captainsPhotos={status.captainsPhotos || {}}
+          remaining={Array.isArray(status.remaining) ? status.remaining : []}
+          teams={status.teams || {}}
+          minPlayersPerTeam={status.minPlayersPerTeam || 8}
         />
 
         <TeamStatus

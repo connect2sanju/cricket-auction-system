@@ -15,7 +15,10 @@ const Controls = ({
   minPrice,
   onAssign,
   players = [],
-  captainsPhotos = {}
+  captainsPhotos = {},
+  remaining = [],
+  teams = {},
+  minPlayersPerTeam = 8
 }) => {
   const [selectedCaptain, setSelectedCaptain] = useState('');
   const [price, setPrice] = useState(minPrice || 5);
@@ -25,6 +28,47 @@ const Controls = ({
   const [assignmentData, setAssignmentData] = useState(null);
 
   const affordable = captains ? captains.filter(c => balances && balances[c] >= (minPrice || 5)) : [];
+  
+  // Calculate maximum bid for each captain based on: balance - (players still needed - 1) * minPrice
+  // Formula: Max Bid = Balance - (Players Still Needed - 1) * MinPrice
+  // Each captain needs exactly 8 players (minPlayersPerTeam)
+  // Example: If captain has 50 pts and already has 4 players:
+  //   - Players still needed = 8 - 4 = 4
+  //   - After buying current, (4 - 1) = 3 players still needed
+  //   - Reserve = 3 * 5 = 15
+  //   - Max bid = 50 - 15 = 35
+  const calculateMaxBid = (captain) => {
+    const balance = balances[captain] || 0;
+    
+    // Count how many players this captain has already bought
+    const teamRoster = teams[captain] || [];
+    const playersAlreadyBought = Array.isArray(teamRoster) ? teamRoster.length : 0;
+    
+    // Calculate how many players captain still needs (8 total - already bought)
+    const playersStillNeeded = Math.max(0, minPlayersPerTeam - playersAlreadyBought);
+    
+    // After buying the current player, captain will need (playersStillNeeded - 1) more players
+    // Reserve enough for (playersStillNeeded - 1) players at minimum price
+    const reserveCount = Math.max(0, playersStillNeeded - 1);
+    const reservedForFuture = reserveCount * (minPrice || 5);
+    
+    const maxBid = balance - reservedForFuture;
+    // Ensure max bid is at least minPrice (can't bid less than minimum)
+    return Math.max(minPrice || 5, maxBid);
+  };
+  
+  // Get players still needed for a captain
+  const getPlayersStillNeeded = (captain) => {
+    const teamRoster = teams[captain] || [];
+    const playersAlreadyBought = Array.isArray(teamRoster) ? teamRoster.length : 0;
+    return Math.max(0, minPlayersPerTeam - playersAlreadyBought);
+  };
+  
+  // Get max bid for selected captain
+  const getSelectedCaptainMaxBid = () => {
+    if (!selectedCaptain) return 200; // Default max if no captain selected
+    return calculateMaxBid(selectedCaptain);
+  };
   
   // Helper functions to get photos for congratulations modal
   const getPlayerPhotoByName = (playerName) => {
@@ -56,8 +100,16 @@ const Controls = ({
       return;
     }
 
+    const maxBid = calculateMaxBid(selectedCaptain);
+    
     if (price > balances[selectedCaptain]) {
       setMessage('Not enough balance for this captain!');
+      return;
+    }
+    
+    if (price > maxBid) {
+      const remainingCount = Array.isArray(remaining) ? remaining.length : 0;
+      setMessage(`Maximum bid is ₹${maxBid}. You need to reserve ₹${(remainingCount - 1) * (minPrice || 5)} for remaining ${remainingCount - 1} players.`);
       return;
     }
 
@@ -95,12 +147,22 @@ const Controls = ({
     setSubmitting(false);
   };
 
-  // Reset price when minPrice changes
+  // Reset price when minPrice or selectedCaptain changes
   useEffect(() => {
     if (minPrice) {
       setPrice(minPrice);
     }
   }, [minPrice]);
+  
+  // Update price when captain changes to ensure it's within max bid
+  useEffect(() => {
+    if (selectedCaptain) {
+      const maxBid = calculateMaxBid(selectedCaptain);
+      if (price > maxBid) {
+        setPrice(maxBid);
+      }
+    }
+  }, [selectedCaptain]);
 
   const getPlayerPhoto = () => {
     if (currentPlayer?.photo) {
@@ -291,63 +353,88 @@ const Controls = ({
                   </div>
                 ) : (
                   <form onSubmit={handleAssignSubmit} className="spin-box-assign-form">
-                    <div className="spin-box-form-row">
+                    {/* First row: Captain Select and Price Input */}
+                    <div className="spin-box-captain-row">
                       <select
                         value={selectedCaptain}
-                        onChange={(e) => setSelectedCaptain(e.target.value)}
+                        onChange={(e) => {
+                          setSelectedCaptain(e.target.value);
+                          // Reset price to min when captain changes
+                          setPrice(minPrice || 5);
+                          setMessage('');
+                        }}
                         className="spin-box-select"
                         required
                       >
                         <option value="">-- Select Team Captain --</option>
-                        {affordable.map(captain => (
-                          <option key={captain} value={captain}>
-                            {captain} (₹{balances[captain]})
-                          </option>
-                        ))}
+                        {affordable.map(captain => {
+                          const maxBid = calculateMaxBid(captain);
+                          const playersNeeded = getPlayersStillNeeded(captain);
+                          const teamRoster = teams[captain] || [];
+                          const playersAlreadyBought = Array.isArray(teamRoster) ? teamRoster.length : 0;
+                          return (
+                            <option key={captain} value={captain}>
+                              {captain} (₹{balances[captain]} | Max: ₹{maxBid} | Has: {playersAlreadyBought}/8)
+                            </option>
+                          );
+                        })}
                       </select>
                       <input
                         type="number"
                         min={minPrice || 5}
-                        max={200}
+                        max={selectedCaptain ? calculateMaxBid(selectedCaptain) : 200}
                         value={price}
-                        onChange={(e) => setPrice(parseInt(e.target.value) || minPrice || 5)}
+                        onChange={(e) => {
+                          const newPrice = parseInt(e.target.value) || minPrice || 5;
+                          const maxBid = selectedCaptain ? calculateMaxBid(selectedCaptain) : 200;
+                          setPrice(Math.min(newPrice, maxBid));
+                        }}
                         className="spin-box-input"
-                        placeholder="Price"
+                        placeholder="Enter Bid Price"
                         required
                       />
-                      <div className="spin-box-buttons-group">
-                        <button
-                          type="submit"
-                          className="spin-box-assign-btn"
-                          disabled={submitting}
-                        >
-                          {submitting ? 'Bidding...' : '🏏 BID'}
-                        </button>
-                        <button
-                          type="button"
-                          className="spin-box-skip-btn"
-                          onClick={onSkip}
-                          disabled={isFetching}
-                        >
-                          ⏭️ Pass
-                        </button>
-                      </div>
                     </div>
+                    
+                    {/* Max bid hint */}
+                    {selectedCaptain && (() => {
+                      const maxBid = calculateMaxBid(selectedCaptain);
+                      const playersNeeded = getPlayersStillNeeded(selectedCaptain);
+                      const reserveCount = Math.max(0, playersNeeded - 1);
+                      const reservedAmount = reserveCount * (minPrice || 5);
+                      const teamRoster = teams[selectedCaptain] || [];
+                      const playersAlreadyBought = Array.isArray(teamRoster) ? teamRoster.length : 0;
+                      return (
+                        <div className="spin-box-max-bid-hint">
+                          💰 Max Bid: ₹{maxBid} (Has {playersAlreadyBought}/8 players | Needs {playersNeeded} more | Reserving ₹{reservedAmount} for {reserveCount} remaining players at ₹{minPrice || 5} each)
+                        </div>
+                      );
+                    })()}
+                    
+                    {/* Second row: Action Buttons */}
+                    <div className="spin-box-buttons-row">
+                      <button
+                        type="submit"
+                        className="spin-box-assign-btn"
+                        disabled={submitting}
+                      >
+                        {submitting ? 'Bidding...' : '🏏 BID'}
+                      </button>
+                      <button
+                        type="button"
+                        className="spin-box-skip-btn"
+                        onClick={onSkip}
+                        disabled={isFetching}
+                      >
+                        ⏭️ Pass
+                      </button>
+                    </div>
+                    
                     {message && (
                       <div className="spin-box-error">{message}</div>
                     )}
                   </form>
                 )}
               </div>
-            </div>
-            <div className="spin-box-footer">
-              <button
-                className="spin-box-pick-again"
-                onClick={onPick}
-                disabled={isFetching}
-              >
-                🏏 Auction Again
-              </button>
             </div>
           </div>
         )}

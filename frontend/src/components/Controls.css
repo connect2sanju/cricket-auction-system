@@ -382,7 +382,7 @@
 /* Spin Box Player Display */
 .spin-box-player-display {
   width: 100%;
-  max-width: 700px;
+  max-width: 900px;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(254, 252, 232, 0.98) 100%);
   border-radius: 30px;
   padding: 2rem;
@@ -476,13 +476,23 @@
   box-sizing: border-box;
 }
 
-.spin-box-form-row {
+/* Captain select row - with price input */
+.spin-box-captain-row {
   display: flex;
-  gap: 0.5rem;
-  align-items: stretch;
-  flex-wrap: wrap;
-  position: relative;
+  gap: 0.75rem;
+  align-items: center;
   width: 100%;
+  margin-bottom: 0.75rem;
+  box-sizing: border-box;
+}
+
+/* Buttons row - separate row for BID and Pass */
+.spin-box-buttons-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+  margin-top: 0.75rem;
   box-sizing: border-box;
 }
 
@@ -495,15 +505,12 @@
   font-weight: 600;
   transition: all 0.2s;
   background: white;
-  height: 100%;
-  display: flex;
-  align-items: center;
+  box-sizing: border-box;
 }
 
-/* Select Captain - Wider */
+/* Select Captain - Takes remaining space */
 .spin-box-select {
   flex: 1 1 auto;
-  min-width: 180px;
   position: relative;
   z-index: 100;
   box-sizing: border-box;
@@ -515,12 +522,13 @@
   position: relative;
 }
 
-/* Price Input - Narrower */
+/* Price Input - Fixed width with consistent height */
 .spin-box-input {
-  flex: 0 0 auto;
-  min-width: 85px;
-  max-width: 95px;
+  flex: 0 0 140px;
+  width: 140px;
+  height: 48px;
   box-sizing: border-box;
+  text-align: center;
 }
 
 .spin-box-assign-form {
@@ -534,30 +542,22 @@
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
-.spin-box-buttons-group {
-  display: flex;
-  gap: 0.5rem;
-  align-items: stretch;
-  justify-content: center;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
 .spin-box-assign-btn {
-  padding: 0.9rem 2rem;
+  padding: 1rem 2rem;
   background: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
+  border-radius: 10px;
+  font-size: 1.2rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
   box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
   white-space: nowrap;
-  min-width: 150px;
+  flex: 1 1 auto;
+  min-width: 180px;
+  height: 56px;
   box-sizing: border-box;
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -594,20 +594,35 @@
   margin-bottom: 1rem;
 }
 
+.spin-box-max-bid-hint {
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(59, 130, 246, 0.1);
+  color: #1e40af;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  font-weight: 500;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .spin-box-skip-btn {
-  padding: 0.6rem 1rem;
+  padding: 1rem 2rem;
   background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  border-radius: 10px;
+  font-size: 1.2rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s;
   white-space: nowrap;
-  min-width: 90px;
+  flex: 1 1 auto;
+  min-width: 180px;
+  height: 56px;
   box-sizing: border-box;
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -625,37 +640,6 @@
   cursor: not-allowed;
 }
 
-.spin-box-footer {
-  text-align: center;
-  padding-top: 1rem;
-  border-top: 2px solid rgba(220, 38, 38, 0.2);
-}
-
-.spin-box-pick-again {
-  padding: 0.75rem 2rem;
-  background: linear-gradient(135deg, #dc2626 0%, #ea580c 50%, #f59e0b 100%);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.spin-box-pick-again:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 6px 25px rgba(220, 38, 38, 0.7);
-  background: linear-gradient(135deg, #ea580c 0%, #f59e0b 50%, #fbbf24 100%);
-}
-
-.spin-box-pick-again:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
 
 /* Secondary controls grid */
 .controls-grid-secondary {
@@ -1211,27 +1195,27 @@
     text-align: center;
   }
 
-  .spin-box-form-row {
+  .spin-box-captain-row {
     flex-direction: column;
-    gap: 0.5rem;
-    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .spin-box-buttons-row {
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
   .spin-box-select,
-  .spin-box-input,
-  .spin-box-buttons-group {
+  .spin-box-input {
     width: 100%;
     max-width: 100%;
     min-width: 100%;
   }
 
-  .spin-box-buttons-group {
-    flex-direction: column;
-  }
-
   .spin-box-assign-btn,
   .spin-box-skip-btn {
     width: 100%;
+    min-width: 100%;
     height: auto;
   }
 }

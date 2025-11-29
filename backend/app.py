@@ -255,8 +255,25 @@ def initialize_auction():
         players = load_players()
         current_player_names = {p["name"] for p in players}
         
+        # Get all currently assigned players
+        assigned_players = set()
+        for captain in CAPTAINS:
+            if captain in auction_state.get("teams", {}):
+                for item in auction_state["teams"][captain]:
+                    if isinstance(item, dict):
+                        assigned_players.add(item.get("player"))
+                    else:
+                        assigned_players.add(item)
+        
         # Remove players from remaining that no longer exist
         auction_state["remaining"] = [p for p in auction_state.get("remaining", []) if p in current_player_names]
+        
+        # Add new players that are in players.yaml but not in remaining and not assigned
+        current_remaining = set(auction_state.get("remaining", []))
+        for player_name in current_player_names:
+            if player_name not in current_remaining and player_name not in assigned_players:
+                auction_state["remaining"].append(player_name)
+                app.logger.info(f"➕ Added new player to pool: {player_name}")
         
         # Remove assigned players that no longer exist from teams
         for captain in CAPTAINS:
