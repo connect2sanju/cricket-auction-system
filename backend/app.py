@@ -10,7 +10,15 @@ from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
-CORS(app)
+
+# CORS configuration - allow all origins for development, configurable for production
+allowed_origins = os.environ.get("ALLOWED_ORIGINS", "*")
+if allowed_origins == "*":
+    CORS(app)  # Allow all origins (development mode)
+else:
+    # Production: allow specific origins
+    origins = [origin.strip() for origin in allowed_origins.split(",")]
+    CORS(app, resources={r"/api/*": {"origins": origins}})
 
 # Configure logging
 log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
@@ -699,6 +707,8 @@ def log_response(response):
     return response
 
 if __name__ == "__main__":
-    app.logger.info("Starting Flask server on http://localhost:5000")
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    debug_mode = os.environ.get("FLASK_DEBUG", "False").lower() == "true"
+    app.logger.info(f"Starting Flask server on port {port} (debug={debug_mode})")
+    app.run(debug=debug_mode, host="0.0.0.0", port=port)
 

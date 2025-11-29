@@ -3,62 +3,78 @@
  * Uses Web Audio API to generate sounds
  */
 
-// Generate a continuous soothing, sweet spinning sound using Web Audio API
+// Generate a stopwatch tick sound using Web Audio API
 export const playSpinningSound = () => {
   try {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     
-    // Create a soothing, gentle spinning sound with soft tones
-    const oscillators = [];
+    // Stopwatch tick configuration
+    const tickInterval = 0.2; // Tick every 200ms (5 ticks per second)
+    const tickDuration = 0.04; // Each tick lasts 40ms
+    const baseFrequency = 1200; // Stopwatch-like frequency (crisp and clear)
+    const tickVolume = 0.12;
     
-    // Create a soft, sweet spinning tone with gentle modulation
-    for (let i = 0; i < 2; i++) {
+    let nextTickTime = audioContext.currentTime;
+    const scheduledTicks = [];
+    
+    // Create a function to play a single tick
+    const playTick = (time) => {
+      // Create oscillator for the tick
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       
-      // Add a low-pass filter for a warmer, softer sound
+      // Add a bandpass filter for a more mechanical, metallic stopwatch sound
       const filter = audioContext.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.value = 2000 - (i * 300); // Softer, warmer frequencies
-      filter.Q.value = 1; // Gentle resonance
+      filter.type = 'bandpass';
+      filter.frequency.value = baseFrequency + (Math.random() * 100 - 50); // Slight variation
+      filter.Q.value = 3; // Narrow bandwidth for sharper sound
       
       oscillator.connect(filter);
       filter.connect(gainNode);
       gainNode.connect(audioContext.destination);
       
-      // Use sine waves for a pure, sweet tone
-      oscillator.type = 'sine';
+      // Use a square wave for a more mechanical, digital stopwatch sound
+      oscillator.type = 'square';
+      oscillator.frequency.value = baseFrequency + (Math.random() * 100 - 50);
       
-      // Gentle, harmonious frequencies (musical intervals)
-      const baseFreq = 220 + (i * 110); // A3 (220Hz) and A4 (330Hz) - pleasant harmony
-      oscillator.frequency.setValueAtTime(baseFreq, audioContext.currentTime);
+      // Sharp attack and quick decay for a crisp tick sound
+      gainNode.gain.setValueAtTime(0, time);
+      gainNode.gain.linearRampToValueAtTime(tickVolume, time + 0.001); // Very quick attack
+      gainNode.gain.exponentialRampToValueAtTime(0.001, time + tickDuration); // Quick decay
       
-      // Very gentle modulation for a subtle spinning effect
-      const lfo = audioContext.createOscillator();
-      const lfoGain = audioContext.createGain();
-      lfo.type = 'sine';
-      lfo.frequency.value = 1.5 + (i * 0.3); // Slow, gentle modulation
-      lfoGain.gain.value = 15 + (i * 5); // Subtle frequency variation
-      lfo.connect(lfoGain);
-      lfoGain.connect(oscillator.frequency);
+      oscillator.start(time);
+      oscillator.stop(time + tickDuration);
       
-      // Soft envelope - very gentle fade in
-      const currentTime = audioContext.currentTime;
-      gainNode.gain.setValueAtTime(0, currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.08 - (i * 0.02), currentTime + 0.5); // Very soft volume
-      
-      // Gradually decrease filter frequency for even softer sound
-      filter.frequency.exponentialRampToValueAtTime(1500 - (i * 200), currentTime + 0.5);
-      
-      // Start LFO and oscillator
-      lfo.start();
-      oscillator.start();
-      
-      oscillators.push({ oscillator, lfo, gainNode, filter });
-    }
+      scheduledTicks.push({ oscillator, gainNode, filter });
+    };
     
-    // Store in context for cleanup
-    audioContext._oscillators = oscillators;
+    // Schedule multiple ticks ahead
+    const scheduleTicks = () => {
+      if (audioContext._isPlaying === false) return;
+      
+      // Schedule ticks for the next second (5 ticks)
+      const now = audioContext.currentTime;
+      for (let i = 0; i < 5; i++) {
+        const tickTime = nextTickTime + (i * tickInterval);
+        if (tickTime >= now - 0.1) { // Only schedule future ticks
+          playTick(tickTime);
+        }
+      }
+      
+      nextTickTime += (5 * tickInterval);
+      
+      // Schedule next batch after a delay
+      if (audioContext._isPlaying !== false) {
+        setTimeout(scheduleTicks, 800); // Schedule next batch before current runs out
+      }
+    };
+    
+    // Store state in context for cleanup
+    audioContext._isPlaying = true;
+    audioContext._scheduledTicks = scheduledTicks;
+    
+    // Start scheduling ticks
+    scheduleTicks();
     
     return audioContext;
   } catch (error) {
@@ -67,37 +83,32 @@ export const playSpinningSound = () => {
   }
 };
 
-// Stop the spinning sound smoothly
+// Stop the stopwatch tick sound
 export const stopSpinningSound = (audioContext) => {
-  if (!audioContext || !audioContext._oscillators) return;
+  if (!audioContext) return;
   
   try {
-    const currentTime = audioContext.currentTime;
+    // Stop the ticking by setting the flag
+    audioContext._isPlaying = false;
     
-    // Fade out all oscillators smoothly with gentle decay
-    audioContext._oscillators.forEach(({ oscillator, lfo, gainNode, filter }) => {
-      if (gainNode) {
-        // Smooth, gentle fade out
-        gainNode.gain.linearRampToValueAtTime(0, currentTime + 0.4);
-      }
-      
-      // Soften filter during fade out
-      if (filter) {
-        filter.frequency.exponentialRampToValueAtTime(500, currentTime + 0.4);
-      }
-      
-      // Stop after fade out
-      setTimeout(() => {
+    // Stop any scheduled oscillators
+    if (audioContext._scheduledTicks) {
+      audioContext._scheduledTicks.forEach(({ oscillator, gainNode }) => {
         try {
-          if (oscillator) oscillator.stop();
-          if (lfo) lfo.stop();
+          if (gainNode) {
+            gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+          }
+          if (oscillator) {
+            oscillator.stop(audioContext.currentTime + 0.01);
+          }
         } catch (e) {
           // Already stopped
         }
-      }, 450);
-    });
+      });
+    }
     
-    // Close audio context after all sounds stop
+    // Close audio context after a short delay to allow current tick to finish
     setTimeout(() => {
       try {
         if (audioContext.state !== 'closed') {
@@ -106,7 +117,7 @@ export const stopSpinningSound = (audioContext) => {
       } catch (e) {
         // Already closed
       }
-    }, 500);
+    }, 100);
   } catch (error) {
     console.warn('Could not stop spinning sound:', error);
   }
