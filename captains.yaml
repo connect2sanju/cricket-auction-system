@@ -1,0 +1,14 @@
+captains:
+  - name: Anshu
+    photo: "/images/captains/Anshu.png"
+  - name: Arunendu
+    photo: "/images/captains/Arunendu.jpeg"
+  - name: Avinash
+    photo: "/images/captains/Avinash.jpeg"
+  - name: Priyanko
+    photo: "/images/captains/Priyanko.jpeg"
+  - name: Rishav
+    photo: "/images/captains/Rishav.png"
+  - name: Robin
+    photo: "/images/captains/Robin.jpeg"
+

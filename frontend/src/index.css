@@ -1,0 +1,62 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Overlay for better text readability - matched to stadium twilight colors */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Gradient overlay matching twilight stadium colors */
+  background: linear-gradient(
+    180deg,
+    rgba(30, 41, 59, 0.4) 0%,      /* Deep blue sky top */
+    rgba(59, 130, 246, 0.25) 25%,  /* Blue transition */
+    rgba(251, 146, 60, 0.2) 50%,   /* Orange twilight */
+    rgba(239, 68, 68, 0.25) 75%,   /* Red/orange horizon */
+    rgba(30, 41, 59, 0.4) 100%     /* Deep blue bottom */
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Additional overlay for content area readability - subtle radial gradient */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Radial gradient to enhance stadium lights effect */
+  background: 
+    radial-gradient(
+      ellipse at 50% 30%, 
+      transparent 0%, 
+      rgba(251, 191, 36, 0.15) 40%,
+      rgba(0, 0, 0, 0.2) 100%
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+

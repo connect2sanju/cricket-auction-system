@@ -1,0 +1,441 @@
+.team-status-container {
+  margin-bottom: 2rem;
+}
+
+.leaderboard-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 3px solid rgba(251, 191, 36, 0.5);
+  position: relative;
+}
+
+.leaderboard-header::before {
+  content: '🏏';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2rem;
+  opacity: 0.3;
+}
+
+.leaderboard-header::after {
+  content: '🏏';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2rem;
+  opacity: 0.3;
+}
+
+.section-title {
+  font-size: 2.8rem;
+  color: white;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5), 0 0 30px rgba(251, 191, 36, 0.4);
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.section-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .teams-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .teams-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .team-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-height: auto;
+  }
+  
+  .team-balance {
+    align-self: flex-end;
+  }
+}
+
+.team-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.team-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(251, 191, 36, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.team-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #dc2626, #ea580c, #f59e0b, #22c55e, #3b82f6, #8b5cf6);
+}
+
+.team-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border-color: rgba(148, 163, 184, 0.5);
+}
+
+.team-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  min-height: 80px;
+  gap: 1rem;
+}
+
+.captain-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.captain-photo {
+  cursor: pointer;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #dc2626;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4), inset 0 0 20px rgba(255, 215, 0, 0.2);
+  flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 10;
+}
+
+.captain-photo:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.6);
+}
+
+.enlarged-photo-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-in-out;
+  cursor: pointer;
+  backdrop-filter: blur(5px);
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to { 
+    opacity: 1;
+    backdrop-filter: blur(5px);
+  }
+}
+
+.enlarged-photo-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(254, 252, 232, 0.98) 100%);
+  border-radius: 20px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 100px rgba(220, 38, 38, 0.3);
+  max-width: 90vw;
+  max-height: 90vh;
+  animation: zoomIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.enlarged-photo-image {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 6px solid #dc2626;
+  box-shadow: 
+    0 15px 50px rgba(220, 38, 38, 0.6),
+    0 0 80px rgba(251, 191, 36, 0.5),
+    inset 0 0 40px rgba(255, 215, 0, 0.3);
+  animation: photoPulse 2s ease-in-out;
+}
+
+@keyframes photoPulse {
+  0%, 100% {
+    box-shadow: 
+      0 15px 50px rgba(220, 38, 38, 0.6),
+      0 0 80px rgba(251, 191, 36, 0.5),
+      inset 0 0 40px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 20px 60px rgba(220, 38, 38, 0.8),
+      0 0 100px rgba(251, 191, 36, 0.7),
+      inset 0 0 50px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.enlarged-photo-caption {
+  margin-top: 1.5rem;
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #dc2626;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  letter-spacing: 1px;
+  animation: slideUp 0.5s ease-out 0.2s both;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.captain-photo.enlarged {
+  /* Keep original photo visible but dimmed during modal */
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.team-captain {
+  font-size: 1.25rem;
+  color: #1e293b;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.3;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: 100%;
+}
+
+.team-balance {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.balance-emoji {
+  font-size: 1.5rem;
+}
+
+.team-count {
+  color: #666;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.team-count-current {
+  color: #22c55e;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.team-count-minimum {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.team-count-remaining {
+  color: #f59e0b;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-left: 0.25rem;
+}
+
+.team-roster {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.roster-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.roster-item:hover {
+  background: #e9ecef;
+}
+
+.roster-photo {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #667eea;
+  flex-shrink: 0;
+}
+
+.roster-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.roster-name {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roster-price {
+  font-size: 0.85rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.no-players {
+  text-align: center;
+  color: #999;
+  padding: 2rem;
+  font-style: italic;
+}
+
+/* Scrollbar styling */
+.team-roster::-webkit-scrollbar {
+  width: 6px;
+}
+
+.team-roster::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.team-roster::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 10px;
+}
+
+.team-roster::-webkit-scrollbar-thumb:hover {
+  background: #5568d3;
+}
+
+/* Responsive styles for enlarged photo modal */
+@media (max-width: 768px) {
+  .enlarged-photo-container {
+    padding: 1.5rem;
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+
+  .enlarged-photo-image {
+    width: 250px;
+    height: 250px;
+  }
+
+  .enlarged-photo-caption {
+    font-size: 1.5rem;
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .enlarged-photo-container {
+    padding: 1rem;
+    border-radius: 15px;
+  }
+
+  .enlarged-photo-image {
+    width: 200px;
+    height: 200px;
+    border-width: 4px;
+  }
+
+  .enlarged-photo-caption {
+    font-size: 1.2rem;
+    margin-top: 0.75rem;
+  }
+}

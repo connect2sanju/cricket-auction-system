@@ -1,0 +1,64 @@
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.xlsx
+*.csv
+shv_teams.*
+
+# Logs
+logs/
+*.log
+
+# Data files (state persistence)
+data/
+*.backup
+auction_state.json*
+
+# Node modules and build
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+frontend/build/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Image files - exclude all images from git (but keep SVG for default icons)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.webp
+
+# Keep SVG files for default/system images (like default-player.svg)
+!*.svg
+
+# Keep directory structure and documentation
+!**/README.md
+!**/.gitkeep
