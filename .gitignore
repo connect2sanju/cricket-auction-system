@@ -47,7 +47,7 @@ frontend/.env.development.local
 frontend/.env.test.local
 frontend/.env.production.local
 
-# Image files - exclude all images from git (but keep SVG for default icons)
+# Image files - exclude most images from git
 *.jpg
 *.jpeg
 *.png
@@ -55,6 +55,21 @@ frontend/.env.production.local
 *.bmp
 *.tiff
 *.webp
+
+# BUT: Include images needed for deployment (frontend assets)
+# Allow images in frontend public directory (needed for React app)
+!frontend/public/images/**/*.jpg
+!frontend/public/images/**/*.jpeg
+!frontend/public/images/**/*.png
+!frontend/public/images/**/*.gif
+!frontend/public/images/**/*.webp
+
+# Allow images in frontend assets (logos, etc.)
+!frontend/src/assets/**/*.jpg
+!frontend/src/assets/**/*.jpeg
+!frontend/src/assets/**/*.png
+!frontend/src/assets/**/*.gif
+!frontend/src/assets/**/*.webp
 
 # Keep SVG files for default/system images (like default-player.svg)
 !*.svg

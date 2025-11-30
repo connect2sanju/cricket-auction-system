@@ -92,6 +92,17 @@ This will automatically:
 
 See [QUICKSTART.md](QUICKSTART.md) for detailed instructions.
 
+---
+
+## 🌐 Hosting & Deployment
+
+Ready to deploy your app online?
+
+- **Quick Start (5 minutes):** See [DEPLOYMENT_QUICKSTART.md](DEPLOYMENT_QUICKSTART.md) for Render deployment
+- **Full Guide:** See [DEPLOYMENT.md](DEPLOYMENT.md) for all hosting options (Render, Railway, VPS, Docker)
+
+---
+
 ### Manual Setup
 
 #### Backend Setup
