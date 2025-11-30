@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import './TeamStatus.css';
 import { getDefaultPlayerImage } from '../utils/defaultPlayerImage';
 import { announceCaptain } from '../utils/voiceAnnouncement';
+import { fixImagePath } from '../utils/imagePath';
 
 const TeamStatus = ({ teams, balances, captains, players, captainsPhotos = {}, minPlayersPerTeam = 9 }) => {
   const [enlargedPhoto, setEnlargedPhoto] = useState(null);
@@ -44,8 +45,14 @@ const TeamStatus = ({ teams, balances, captains, players, captainsPhotos = {}, m
   };
 
   const getCaptainPhoto = (captainName) => {
-    if (captainsPhotos[captainName]) {
-      return captainsPhotos[captainName];
+    if (captainsPhotos && captainsPhotos[captainName]) {
+      const photoPath = captainsPhotos[captainName];
+      if (!photoPath || photoPath.trim() === '') {
+        // Empty photo path, use default
+        return getDefaultPlayerImage(captainName, 80);
+      }
+      // Fix image path for React (prepend PUBLIC_URL if needed)
+      return fixImagePath(photoPath);
     }
     // Use cricket-themed default image for captains
     return getDefaultPlayerImage(captainName, 80);

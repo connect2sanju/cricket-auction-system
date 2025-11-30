@@ -1,0 +1,17 @@
+[
+  {
+    "username": "admin",
+    "password": "CHANGE_THIS_PASSWORD",
+    "role": "admin",
+    "created_at": "2024-01-01T00:00:00"
+  }
+]
+
+# IMPORTANT: This file is for LOCAL DEVELOPMENT ONLY
+# For production deployment on Render, use environment variables instead:
+# 
+# Method 1: Set AUCTION_USERS environment variable with JSON array
+# Method 2: Set AUCTION_ADMIN_USER and AUCTION_ADMIN_PASSWORD
+# 
+# See RENDER_USER_CREDENTIALS_GUIDE.md for detailed instructions
+

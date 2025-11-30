@@ -3,6 +3,7 @@ import './Controls.css';
 import { getDefaultPlayerImage } from '../utils/defaultPlayerImage';
 import { playSpinningSound, playSuccessSound, stopSpinningSound } from '../utils/soundEffects';
 import { announcePlayer, announceAssignment } from '../utils/voiceAnnouncement';
+import { fixImagePath } from '../utils/imagePath';
 
 const Controls = ({ 
   onPick, 
@@ -39,22 +40,23 @@ const Controls = ({
   //   - Max bid = 50 - 15 = 35
   const calculateMaxBid = (captain) => {
     const balance = balances[captain] || 0;
+    const basePrice = minPrice || 5; // Use base price from auction config
     
     // Count how many players this captain has already bought
     const teamRoster = teams[captain] || [];
     const playersAlreadyBought = Array.isArray(teamRoster) ? teamRoster.length : 0;
     
-    // Calculate how many players captain still needs (8 total - already bought)
+    // Calculate how many players captain still needs (minPlayersPerTeam total - already bought)
     const playersStillNeeded = Math.max(0, minPlayersPerTeam - playersAlreadyBought);
     
     // After buying the current player, captain will need (playersStillNeeded - 1) more players
-    // Reserve enough for (playersStillNeeded - 1) players at minimum price
+    // Reserve enough for (playersStillNeeded - 1) players at base price
     const reserveCount = Math.max(0, playersStillNeeded - 1);
-    const reservedForFuture = reserveCount * (minPrice || 5);
+    const reservedForFuture = reserveCount * basePrice;
     
     const maxBid = balance - reservedForFuture;
-    // Ensure max bid is at least minPrice (can't bid less than minimum)
-    return Math.max(minPrice || 5, maxBid);
+    // Ensure max bid is at least basePrice (can't bid less than base price)
+    return Math.max(basePrice, maxBid);
   };
   
   // Get players still needed for a captain
@@ -80,8 +82,10 @@ const Controls = ({
   };
   
   const getCaptainPhotoByName = (captainName) => {
-    if (captainsPhotos[captainName]) {
-      return captainsPhotos[captainName];
+    if (captainsPhotos && captainsPhotos[captainName]) {
+      const photoPath = captainsPhotos[captainName];
+      // Fix image path for React (prepend PUBLIC_URL if needed)
+      return fixImagePath(photoPath);
     }
     return getDefaultPlayerImage(captainName, 120);
   };

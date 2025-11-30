@@ -47,6 +47,16 @@ frontend/.env.development.local
 frontend/.env.test.local
 frontend/.env.production.local
 
+# Environment variable files - NEVER commit actual .env files
+.env
+.env.*
+!.env.*.template
+!.env.*.example
+env.*.template
+*.env
+!*.env.template
+!*.env.example
+
 # Image files - exclude most images from git
 *.jpg
 *.jpeg
@@ -77,3 +87,7 @@ frontend/.env.production.local
 # Keep directory structure and documentation
 !**/README.md
 !**/.gitkeep
+
+# User credentials - NEVER commit this file!
+backend/users.json
+!backend/users.json.example

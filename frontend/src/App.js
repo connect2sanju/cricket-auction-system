@@ -6,6 +6,9 @@ import Stats from './components/Stats';
 import TeamStatus from './components/TeamStatus';
 import PlayerListModal from './components/PlayerListModal';
 import Controls from './components/Controls';
+import Login from './components/Login';
+import AuctionConfig from './components/AuctionConfig';
+import Profile from './components/Profile';
 import logger from './utils/logger';
 import { announcePlayer, stopAnnouncement } from './utils/voiceAnnouncement';
 
@@ -30,20 +33,65 @@ function App() {
       document.body.style.backgroundAttachment = '';
     };
   }, []);
+  // Authentication and auction management
+  const [username, setUsername] = useState(() => {
+    return localStorage.getItem('auction_username') || null;
+  });
+  const [currentAuctionId, setCurrentAuctionId] = useState(() => {
+    return localStorage.getItem('auction_id') || null;
+  });
+  const [auctionConfig, setAuctionConfig] = useState(null);
+  const [showConfig, setShowConfig] = useState(false);
+
+  const handleLogin = (user) => {
+    setUsername(user);
+    // Check if user has an existing auction
+    const savedAuctionId = localStorage.getItem('auction_id');
+    if (savedAuctionId) {
+      setCurrentAuctionId(savedAuctionId);
+      setShowConfig(false);
+    } else {
+      setShowConfig(true);
+    }
+  };
+
+  const handleConfigComplete = (auctionId, config) => {
+    setCurrentAuctionId(auctionId);
+    setAuctionConfig(config);
+    setShowConfig(false);
+    localStorage.setItem('auction_id', auctionId);
+    logger.info(`Auction configured: ${auctionId}`);
+    fetchStatus(auctionId);
+  };
+
+  const handleLogout = () => {
+    setUsername(null);
+    setCurrentAuctionId(null);
+    setAuctionConfig(null);
+    setShowConfig(false);
+    localStorage.removeItem('auction_username');
+    localStorage.removeItem('auction_id');
+    logger.info('User logged out');
+  };
+
   const [status, setStatus] = useState(null);
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showPlayerList, setShowPlayerList] = useState(false);
   const [fetchingPlayer, setFetchingPlayer] = useState(false);
-  const [showReset, setShowReset] = useState(false);
   const previousPlayerRef = useRef(null); // Track previous player for voice announcement
   const announcementTimerRef = useRef(null); // Track announcement timer to prevent duplicates
 
-  const fetchStatus = useCallback(async () => {
+  const fetchStatus = useCallback(async (auctionId = null) => {
     try {
-      logger.debug('Fetching auction status');
-      const response = await axios.get(`${API_BASE_URL}/status`);
+      const targetAuctionId = auctionId || currentAuctionId;
+      if (!targetAuctionId) return;
+      
+      logger.debug(`Fetching auction status for auction: ${targetAuctionId}`);
+      const response = await axios.get(`${API_BASE_URL}/status`, {
+        params: { auction_id: targetAuctionId }
+      });
       setStatus(response.data);
       setError(null);
       logger.debug('Status fetched successfully', response.data);
@@ -52,7 +100,7 @@ function App() {
       setError(errorMsg);
       logger.error(errorMsg, err);
     }
-  }, []);
+  }, [currentAuctionId]);
 
   const fetchPlayers = useCallback(async () => {
     try {
@@ -66,34 +114,38 @@ function App() {
   }, []);
 
   useEffect(() => {
-    logger.info('App initialized');
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([fetchStatus(), fetchPlayers()]);
-      setLoading(false);
-    };
-    loadData();
-    
-    // Refresh status every 2 seconds
-    const interval = setInterval(fetchStatus, 2000);
-    return () => {
-      clearInterval(interval);
-      logger.info('App cleanup');
-    };
-  }, [fetchStatus, fetchPlayers]);
+    if (username && currentAuctionId && !showConfig) {
+      logger.info('App initialized');
+      const loadData = async () => {
+        setLoading(true);
+        await Promise.all([fetchStatus(currentAuctionId), fetchPlayers()]);
+        setLoading(false);
+      };
+      loadData();
+      
+      // Refresh status every 2 seconds for current auction
+      const interval = setInterval(() => fetchStatus(currentAuctionId), 2000);
+      return () => {
+        clearInterval(interval);
+        logger.info('App cleanup');
+      };
+    }
+  }, [fetchStatus, fetchPlayers, currentAuctionId, username, showConfig]);
 
   // Define handlePick first using useCallback
   const handlePick = useCallback(async () => {
     try {
-      logger.info('Picking next player');
+      logger.info(`Picking next player for auction: ${currentAuctionId}`);
       setFetchingPlayer(true);
       
-      const response = await axios.post(`${API_BASE_URL}/pick`);
+      const response = await axios.post(`${API_BASE_URL}/pick`, {
+        auction_id: currentAuctionId
+      });
       
       // Wait for backend delay (backend has 2.5s delay) + a bit more for smooth transition
       await new Promise(resolve => setTimeout(resolve, 2800));
       
-      await fetchStatus();
+      await fetchStatus(currentAuctionId);
       setFetchingPlayer(false);
       logger.info('Player picked successfully');
     } catch (err) {
@@ -102,7 +154,7 @@ function App() {
       setFetchingPlayer(false);
       logger.error('Failed to pick player', err);
     }
-  }, [fetchStatus]); // Include fetchStatus in deps
+  }, [fetchStatus, currentAuctionId]); // Include fetchStatus and currentAuctionId in deps
 
 
   // Announce player name AFTER it's displayed on screen
@@ -154,15 +206,17 @@ function App() {
 
   const handleSkip = async () => {
     try {
-      logger.info('Skipping current player');
+      logger.info(`Skipping current player for auction: ${currentAuctionId}`);
       setFetchingPlayer(true);
       
-      const response = await axios.post(`${API_BASE_URL}/skip`);
+      const response = await axios.post(`${API_BASE_URL}/skip`, {
+        auction_id: currentAuctionId
+      });
       
       // Wait for backend delay (backend has 2.5s delay) + a bit more for smooth transition
       await new Promise(resolve => setTimeout(resolve, 2800));
       
-      await fetchStatus();
+      await fetchStatus(currentAuctionId);
       setFetchingPlayer(false);
       logger.info('Player skipped successfully');
     } catch (err) {
@@ -175,9 +229,13 @@ function App() {
 
   const handleAssign = async (captain, price) => {
     try {
-      logger.info(`Assigning player to ${captain} for ${price} points`);
-      await axios.post(`${API_BASE_URL}/assign`, { captain, price });
-      await fetchStatus();
+      logger.info(`Assigning player to ${captain} for ${price} points in auction: ${currentAuctionId}`);
+      await axios.post(`${API_BASE_URL}/assign`, { 
+        captain, 
+        price,
+        auction_id: currentAuctionId
+      });
+      await fetchStatus(currentAuctionId);
       
       // Clear previous player reference after assignment
       previousPlayerRef.current = null;
@@ -193,11 +251,13 @@ function App() {
   };
 
   const handleReset = async () => {
-    if (window.confirm('Are you sure you want to reset the auction? This will clear all teams and balances.')) {
+    if (window.confirm(`Are you sure you want to reset the auction "${auctionConfig?.season_name || currentAuctionId}"? This will clear all teams and balances.`)) {
       try {
-        logger.warn('Resetting auction');
-        await axios.post(`${API_BASE_URL}/reset`);
-        await fetchStatus();
+        logger.warn(`Resetting auction: ${currentAuctionId}`);
+        await axios.post(`${API_BASE_URL}/reset`, {
+          auction_id: currentAuctionId
+        });
+        await fetchStatus(currentAuctionId);
         logger.info('Auction reset successfully');
       } catch (err) {
         setError('Failed to reset auction');
@@ -206,10 +266,43 @@ function App() {
     }
   };
 
+  const handleUndo = async () => {
+    const lastAssignment = status?.lastAssignment;
+    let confirmMessage = 'Are you sure you want to undo the last action? This will restore the previous state.';
+    
+    if (lastAssignment) {
+      confirmMessage = `Are you sure you want to undo the last bid?\n\n` +
+        `Player: ${lastAssignment.player}\n` +
+        `Captain: ${lastAssignment.captain}\n` +
+        `Price: ₹${lastAssignment.price}\n\n` +
+        `This will restore the balance and remove this assignment.`;
+    }
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        logger.info(`Undoing last assignment for auction: ${currentAuctionId}`, lastAssignment);
+        await axios.post(`${API_BASE_URL}/undo`, {
+          auction_id: currentAuctionId
+        });
+        await fetchStatus(currentAuctionId);
+        logger.info('Assignment undone successfully');
+      } catch (err) {
+        const errorMsg = err.response?.data?.error || 'Failed to undo action';
+        setError(errorMsg);
+        if (err.response?.status !== 404) {
+          logger.error('Failed to undo action', err);
+        } else {
+          // No backup available - show friendly message
+          alert('No previous state available to undo. Undo is only available after making assignments.');
+        }
+      }
+    }
+  };
+
   const handleExport = async () => {
     try {
-      logger.info('Exporting auction results');
-      const response = await axios.get(`${API_BASE_URL}/export?format=csv`, {
+      logger.info(`Exporting auction results for auction: ${currentAuctionId}`);
+      const response = await axios.get(`${API_BASE_URL}/export?format=csv&auction_id=${currentAuctionId}`, {
         responseType: 'blob'
       });
       
@@ -218,9 +311,9 @@ function App() {
       const link = document.createElement('a');
       link.href = url;
       
-      // Generate filename with timestamp
+      // Generate filename with timestamp and auction_id
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      link.setAttribute('download', `SHV_Auction_Results_${timestamp}.csv`);
+      link.setAttribute('download', `SHV_Auction_Results_${currentAuctionId}_${timestamp}.csv`);
       
       document.body.appendChild(link);
       link.click();
@@ -233,6 +326,22 @@ function App() {
       logger.error('Failed to export', err);
     }
   };
+
+  // Show login screen if not logged in
+  if (!username) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  // Show config screen if logged in but no auction configured
+  if (showConfig || !currentAuctionId) {
+    return (
+      <AuctionConfig
+        username={username}
+        onConfigComplete={handleConfigComplete}
+        currentAuctionId={currentAuctionId}
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -270,6 +379,13 @@ function App() {
         </div>
       )}
 
+      <Profile
+        username={username}
+        auctionName={auctionConfig?.season_name || currentAuctionId}
+        onLogout={handleLogout}
+        onShowConfig={() => setShowConfig(true)}
+      />
+      
       <div className="container">
         <Stats status={status} />
         
@@ -298,7 +414,7 @@ function App() {
           captains={status.captains}
           players={players}
           captainsPhotos={status.captainsPhotos || {}}
-          minPlayersPerTeam={status.minPlayersPerTeam || 9}
+          minPlayersPerTeam={status.minPlayersPerTeam || 8}
         />
 
         <PlayerListModal
@@ -326,39 +442,52 @@ function App() {
         </div>
       )}
 
-      {/* Bottom Controls */}
-      <div className="bottom-controls">
-        <button
-          className="btn btn-info"
-          onClick={() => setShowPlayerList(true)}
-        >
-          👥 View All Players
-        </button>
-
-        <button
-          className="btn btn-export-small"
-          onClick={handleExport}
-          title="Export auction results to CSV"
-        >
-          📥 Export
-        </button>
-
-        {showReset && (
+      {/* Bottom Action Bar */}
+      <div className="bottom-action-bar">
+        <div className="action-bar-content">
           <button
-            className="btn btn-danger"
-            onClick={handleReset}
+            className="action-btn action-btn-primary"
+            onClick={() => setShowPlayerList(true)}
+            title="View all players"
           >
-            🔄 Reset Auction
+            <span className="action-icon">👥</span>
+            <span className="action-label">View Players</span>
           </button>
-        )}
 
-        <button
-          className="admin-toggle"
-          onClick={() => setShowReset(!showReset)}
-          title="Show/Hide Reset Button"
-        >
-          ⚙️
-        </button>
+          <button
+            className="action-btn action-btn-success"
+            onClick={handleExport}
+            title="Export auction results to CSV"
+          >
+            <span className="action-icon">📥</span>
+            <span className="action-label">Export</span>
+          </button>
+
+          <button
+            className={`action-btn action-btn-secondary ${status?.lastAssignment ? '' : 'disabled'}`}
+            onClick={handleUndo}
+            disabled={!status?.lastAssignment}
+            title={status?.lastAssignment 
+              ? `Undo last bid: ${status.lastAssignment.player} → ${status.lastAssignment.captain} for ₹${status.lastAssignment.price}`
+              : 'No recent bid to undo'}
+          >
+            <span className="action-icon">↩️</span>
+            <span className="action-label">
+              {status?.lastAssignment 
+                ? `Undo Last Bid`
+                : 'Undo'}
+            </span>
+          </button>
+
+          <button
+            className="action-btn action-btn-danger"
+            onClick={handleReset}
+            title="Reset auction"
+          >
+            <span className="action-icon">🔄</span>
+            <span className="action-label">Reset</span>
+          </button>
+        </div>
       </div>
     </div>
   );
