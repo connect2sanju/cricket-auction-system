@@ -229,7 +229,10 @@ const AuctionConfig = ({ username, onConfigComplete, currentAuctionId }) => {
         <div className="config-tabs">
           <button
             className={`tab-button ${!showCreate ? 'active' : ''}`}
-            onClick={() => !showCreate || handleNewAuction()}
+            onClick={() => {
+              setShowCreate(false);
+              fetchAuctions(); // Refresh auction list when switching to select mode
+            }}
           >
             📋 Select Existing Auction
           </button>
@@ -241,37 +244,46 @@ const AuctionConfig = ({ username, onConfigComplete, currentAuctionId }) => {
           </button>
         </div>
 
-        {!showCreate && existingAuctions.length > 0 && (
+        {!showCreate && (
           <div className="existing-auctions">
-            <h3>Available Auctions:</h3>
-            <div className="auction-list">
-              {existingAuctions.map((auction) => (
-                <div
-                  key={auction.auction_id}
-                  className={`auction-item-wrapper ${selectedAuctionId === auction.auction_id ? 'active' : ''}`}
-                >
-                  <button
-                    className={`auction-item ${selectedAuctionId === auction.auction_id ? 'active' : ''}`}
-                    onClick={() => handleAuctionSelect(auction.auction_id)}
-                  >
-                    <span className="auction-name">{auction.season_name || auction.auction_id}</span>
-                    <span className="auction-info">
-                      Base Price: ₹{auction.base_price || 5}
-                    </span>
-                  </button>
-                  <button
-                    className="auction-delete-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteAuction(auction.auction_id);
-                    }}
-                    title="Delete this auction"
-                  >
-                    🗑️
-                  </button>
+            {existingAuctions.length > 0 ? (
+              <>
+                <h3>Available Auctions:</h3>
+                <div className="auction-list">
+                  {existingAuctions.map((auction) => (
+                    <div
+                      key={auction.auction_id}
+                      className={`auction-item-wrapper ${selectedAuctionId === auction.auction_id ? 'active' : ''}`}
+                    >
+                      <button
+                        className={`auction-item ${selectedAuctionId === auction.auction_id ? 'active' : ''}`}
+                        onClick={() => handleAuctionSelect(auction.auction_id)}
+                      >
+                        <span className="auction-name">{auction.season_name || auction.auction_id}</span>
+                        <span className="auction-info">
+                          Base Price: ₹{auction.base_price || 5}
+                        </span>
+                      </button>
+                      <button
+                        className="auction-delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteAuction(auction.auction_id);
+                        }}
+                        title="Delete this auction"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <div className="no-auctions-message">
+                <p>📭 No existing auctions found.</p>
+                <p>Click "Create New Auction" to get started.</p>
+              </div>
+            )}
           </div>
         )}
 
