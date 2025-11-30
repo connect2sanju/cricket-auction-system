@@ -1,75 +1,97 @@
-# 🏏 SHV Short Cricket Season 9 — Players Auction
+# 🏏 SHV Cricket Auction System
 
-A **React-based live auction web app** for managing cricket team formation in the SHV Cricket Association.  
-This modern web application allows random player picking, bidding, balance tracking, and team management in real time with beautiful UI, player photos, and captain photos support.
-
----
-
-## ✨ Features
-
-- 🎯 **Player Pool Management**  
-  - 48 players (excluding captains) loaded from `players.yaml`  
-  - Enhanced stats showing: Total Players, Remaining in Pool, Assigned, Skipped, and Progress percentage
-  - Player photos support with fallback avatars
-  - Automatic exclusion of captains from player list
-
-- 🧢 **Captains & Teams**  
-  - 6 captains with initial balance of 200 points each  
-  - Each captain builds their team through bidding  
-  - Minimum 8 players per team required (8 players + 1 captain = 9 total)
-  - Visual team status with captain and player photos
-  - Leaderboard showing team standings and squad lineup
-
-- 🔀 **Player Picking**  
-  - Random player selection with smooth animations
-  - Option to **Skip Player** and pick another  
-  - Beautiful player card display with photos
-  - Voice announcements for player names
-
-- 💰 **Auction Assignment**  
-  - Minimum bid: **5 points**  
-  - Price cannot exceed captain's balance  
-  - Automatic balance deduction after assignment  
-  - Real-time balance status indicators (🟢 >100 | 🟡 >50 | 🔴 ≤50)
-
-- 📊 **Team Status & Leaderboard**  
-  - Real-time captain balance tracking
-  - Player count per team (current/minimum)
-  - Team roster with assigned prices and photos
-  - Captain photos in leaderboard cards
-  - Click captain photos to hear name announcements
-
-- 🖼️ **Photo Support**  
-  - Player photos from `players.yaml`
-  - Captain photos from `captains.yaml`
-  - Automatic avatar generation for players/captains without photos
-  - Photos displayed in all relevant views
-
-- 🛑 **Validations & Safety**  
-  - No captain selection → Error shown  
-  - Price below minimum or above balance → Error shown  
-  - Captains with insufficient balance disabled  
-  - State persistence with automatic save/load
-
-- 🔄 **Reset Auction**  
-  - Complete reset of all data, balances, and teams  
-  - Fresh start with all players back in pool
-  - Start fresh anytime  
-
-- 📤 **Export Functionality**
-  - Export auction results to CSV format
-  - Timestamped file downloads
-  - Complete team and player assignment data
+A **modern, multi-user React-based live auction web application** for managing cricket team formation. Features user authentication, configurable auctions, real-time bidding, balance tracking, and team management with beautiful UI, player photos, and captain photos support.
 
 ---
 
-## 🚀 Installation & Usage
+## ✨ Key Features
+
+### 🔐 User Authentication & Management
+- Secure login system with username and password
+- Environment variable-based authentication (secure for deployment)
+- Support for multiple users with role-based access
+- Profile section with auction information
+
+### ⚙️ Configurable Auctions
+- **Multiple independent auctions** - Each user can create and manage their own auctions
+- **Auction Season Name** - Customize season/tournament name
+- **Base Price** - Configurable minimum bid price per auction
+- **Team Size** - Set minimum players required per team
+- **Initial Points** - Configure starting balance for each captain
+- **Players & Captains Files** - Upload custom YAML files per auction
+- **Create, Update, Delete** - Full auction lifecycle management
+
+### 🎯 Player Pool Management
+- Dynamic player count loaded from `players.yaml`
+- Enhanced stats showing: Total Players, Remaining in Pool, Assigned, Skipped, Progress percentage, and Initial Points
+- Player photos support with fallback avatars
+- Automatic exclusion of captains from player list
+
+### 🧢 Captains & Teams
+- Multiple captains with configurable initial balance
+- Each captain builds their team through bidding
+- Configurable minimum players per team
+- Visual team status with captain and player photos
+- Leaderboard showing team standings and squad lineup
+- Real-time balance tracking with status indicators (🟢 >100 | 🟡 >50 | 🔴 ≤50)
+
+### 🔀 Player Picking & Bidding
+- Random player selection with smooth animations
+- Option to **Skip Player** and pick another
+- Beautiful player card display with photos
+- Voice announcements for player names
+- **Max Bid Calculation** - Shows maximum allowed bid based on:
+  - Current balance
+  - Players still needed
+  - Base price
+  - Formula: `Balance - (Players Still Needed - 1) × Base Price`
+
+### 💰 Auction Assignment
+- Configurable minimum bid price
+- Price cannot exceed captain's balance or max bid
+- Automatic balance deduction after assignment
+- Real-time validation and error messages
+
+### 📊 Team Status & Leaderboard
+- Real-time captain balance tracking
+- Player count per team (current/minimum)
+- Team roster with assigned prices and photos
+- Captain photos in leaderboard cards
+- Click captain photos to hear name announcements
+
+### 🖼️ Photo Support
+- Player photos from `players.yaml`
+- Captain photos from `captains.yaml`
+- Automatic avatar generation for players/captains without photos
+- Photos displayed in all relevant views
+
+### 🛑 Validations & Safety
+- No captain selection → Error shown
+- Price below minimum or above max bid → Error shown
+- Captains with insufficient balance disabled
+- State persistence with automatic save/load
+- **Undo Functionality** - Rollback the last bid/assignment if needed
+
+### 🔄 Auction Management
+- **Reset Auction** - Complete reset of all data, balances, and teams
+- **Undo Last Bid** - Rollback the most recent assignment
+- Fresh start with all players back in pool
+- State persistence across sessions
+
+### 📤 Export Functionality
+- Export auction results to CSV format
+- Timestamped file downloads
+- Complete team and player assignment data
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 - Python 3.9+
 - Node.js 16+ and npm
 
-### Quick Start (Easiest Way)
+### Installation
 
 **Start both servers at once:**
 ```bash
@@ -90,63 +112,43 @@ This will automatically:
 ./start_frontend.sh
 ```
 
-See [QUICKSTART.md](QUICKSTART.md) for detailed instructions.
+### First Time Setup
+
+1. **Login** - Use your credentials (see [Deployment Guide](#-deployment) for setting up users)
+2. **Configure Auction** - Click the profile menu (three dots) → Configuration
+3. **Create New Auction** - Set:
+   - Season name
+   - Base price
+   - Team size
+   - Initial points
+   - Upload players and captains YAML files
+4. **Start Auction** - Begin picking and bidding on players
 
 ---
 
-## 🌐 Hosting & Deployment
+## 🌐 Deployment
 
 Ready to deploy your app online?
 
-- **Quick Start (5 minutes):** See [DEPLOYMENT_QUICKSTART.md](DEPLOYMENT_QUICKSTART.md) for Render deployment
-- **Full Guide:** See [DEPLOYMENT.md](DEPLOYMENT.md) for all hosting options (Render, Railway, VPS, Docker)
+**📖 Complete Deployment Guide:** See [RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md) for step-by-step instructions on deploying to Render.
 
----
+### Quick Deployment Checklist
 
-### Manual Setup
+1. **Backend Deployment:**
+   - Set environment variables (user credentials, CORS, etc.)
+   - Configure build and start commands
+   - Deploy as Web Service
 
-#### Backend Setup
+2. **Frontend Deployment:**
+   - Set `REACT_APP_API_URL` environment variable
+   - Configure build command
+   - Deploy as Static Site
 
-1. **Create and activate virtual environment** (if not already done)
-```bash
-# Create virtual environment
-python3 -m venv venv
+3. **Connect Frontend to Backend:**
+   - Update backend `ALLOWED_ORIGINS` with frontend URL
+   - Test the connection
 
-# Activate virtual environment
-# On macOS/Linux:
-source venv/bin/activate
-
-# On Windows:
-# venv\Scripts\activate
-```
-
-2. **Install backend dependencies**
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-3. **Run the backend server**
-```bash
-python app.py
-```
-
-The backend API will run on `http://localhost:5000`
-
-#### Frontend Setup
-
-1. **Install frontend dependencies**
-```bash
-cd frontend
-npm install
-```
-
-2. **Run the React app**
-```bash
-npm start
-```
-
-The frontend will open in your browser at `http://localhost:3000`
+See the deployment guide for detailed instructions.
 
 ---
 
@@ -156,7 +158,9 @@ The frontend will open in your browser at `http://localhost:3000`
 📦 SHV_Tournament
  ├── 📁 backend/
  │   ├── 📜 app.py              # Flask API server
- │   └── 📜 requirements.txt    # Python dependencies
+ │   ├── 📜 user_manager.py     # User authentication management
+ │   ├── 📜 requirements.txt    # Python dependencies
+ │   └── 📜 users.json.example  # Example user credentials format
  ├── 📁 frontend/
  │   ├── 📁 public/             # Static files
  │   │   ├── 📁 images/
@@ -166,55 +170,29 @@ The frontend will open in your browser at `http://localhost:3000`
  │   │   └── index.html
  │   ├── 📁 src/
  │   │   ├── 📁 components/     # React components
+ │   │   │   ├── Login.js       # Login screen
+ │   │   │   ├── AuctionConfig.js # Auction configuration
+ │   │   │   ├── Profile.js     # User profile menu
  │   │   │   ├── Header.js
  │   │   │   ├── Stats.js
  │   │   │   ├── Controls.js
  │   │   │   ├── CurrentPlayer.js
  │   │   │   ├── TeamStatus.js
- │   │   │   ├── PlayerList.js
- │   │   │   └── PlayerListModal.js
+ │   │   │   └── PlayerList.js
  │   │   ├── 📁 utils/          # Utility functions
  │   │   ├── App.js             # Main React component
  │   │   └── index.js           # React entry point
  │   └── 📜 package.json        # Node dependencies
- ├── 📜 players.yaml            # Player data (48 players, excluding captains)
- ├── 📜 captains.yaml           # Captain data with photos
+ ├── 📁 data/                   # Runtime data (auto-generated)
+ │   ├── auctions/              # Auction configurations
+ │   └── rooms/                 # Auction state files
+ ├── 📜 players.yaml            # Default player data
+ ├── 📜 captains.yaml           # Default captain data
+ ├── 📜 Procfile                # Render deployment config
+ ├── 📜 runtime.txt             # Python version for deployment
  ├── 📜 .gitignore              # Git ignore rules
  └── 📜 README.md               # This file
 ```
-
----
-
-## 📝 Adding Player & Captain Photos
-
-### Player Photos
-
-To add photos for players, update `players.yaml`:
-
-```yaml
-players:
-  - name: Player Name
-    photo: "/images/players/Player_Name.jpeg"  # Local path
-  - name: Another Player
-    photo: ""  # Empty string for auto-generated avatar
-```
-
-**Photo file naming:** Use underscores (e.g., `Amit_Roy.jpeg`) to match player names.
-
-### Captain Photos
-
-Captain photos are managed in `captains.yaml`:
-
-```yaml
-captains:
-  - name: Anshu
-    photo: "/images/captains/Anshu.png"
-```
-
-**Supported photo formats:**
-- Local file paths (relative to `frontend/public/`)
-- Empty string `""` for auto-generated avatars
-- JPG, JPEG, PNG formats
 
 ---
 
@@ -222,122 +200,167 @@ captains:
 
 ### Backend API Endpoints
 
-- `GET /api/status` - Get current auction status (players, teams, balances, captains)
-- `GET /api/players` - Get all players list (excluding captains)
-- `POST /api/pick` - Pick a random player from remaining pool
-- `POST /api/skip` - Skip current player (adds to skipped pool)
-- `POST /api/assign` - Assign player to captain with price
-- `POST /api/reset` - Reset auction (fresh start)
-- `GET /api/export?format=csv` - Export teams data to CSV
+**Authentication:**
+- `POST /api/login` - User login
+- `GET /api/users` - List users (admin only)
+
+**Auction Management:**
+- `POST /api/auctions` - Create new auction
+- `GET /api/auctions` - List all auctions
+- `GET /api/auctions/<auction_id>/config` - Get auction configuration
+- `PUT /api/auctions/<auction_id>/config` - Update auction configuration
+- `DELETE /api/auctions/<auction_id>` - Delete auction
+
+**Auction Operations:**
+- `GET /api/status?auction_id=<id>` - Get current auction status
+- `GET /api/players?auction_id=<id>` - Get all players list
+- `POST /api/pick?auction_id=<id>` - Pick a random player
+- `POST /api/skip?auction_id=<id>` - Skip current player
+- `POST /api/assign?auction_id=<id>` - Assign player to captain
+- `POST /api/reset?auction_id=<id>` - Reset auction
+- `POST /api/undo?auction_id=<id>` - Undo last assignment
+- `GET /api/export?auction_id=<id>&format=csv` - Export teams data
+
+**Root:**
+- `GET /` - API information and available endpoints
 
 ### Frontend Components
 
-- **Header** - Multi-color gradient header with logo and branding
-- **Stats** - Player count statistics (Total, Remaining, Assigned, Skipped, Progress %)
-- **Controls** - Pick player, skip player, and reset auction buttons
-- **CurrentPlayer** - Current player display with bidding form and photo
-- **TeamStatus** - Leaderboard with team cards, captain photos, balances, and rosters
-- **PlayerList** - Grid view of all players with filters (All, Remaining, Assigned)
-
----
-
-## 🎨 Features in Detail
-
-### Player Management
-- **48 Players** (excluding 6 captains)
-- Players loaded from `players.yaml`
-- Captains automatically filtered out from player pool
-- First name matching to prevent captain duplicates
-
-### Team Formation
-- **Minimum 8 players per team** (8 players + 1 captain = 9 total)
-- Real-time tracking of players needed per team
-- Visual indicators for incomplete teams
-
-### Statistics Dashboard
-- Total Players count
-- Remaining in Pool count
-- Assigned Players count
-- Skipped Players count
-- Progress percentage (assigned/total)
-
-### Photo Display
-- Player photos in:
-  - Current player card
-  - Team roster
-  - Player list grid
-- Captain photos in:
-  - Leaderboard cards
-  - Clickable with voice announcements
-
-### Real-time Updates
-- Frontend polls backend every 2 seconds for status updates
-- Automatic refresh after actions
-- Smooth UI transitions and animations
-
-### Responsive Design
-- Mobile-friendly layout
-- Adaptive grid systems
-- Touch-friendly controls
-- Optimized for various screen sizes
-
-### State Persistence
-- Auction state automatically saved to `data/auction_state.json`
-- State loaded on server restart
-- Backup files created before state changes
+- **Login** - User authentication screen
+- **AuctionConfig** - Create and configure auctions
+- **Profile** - User profile menu (three-dot menu)
+- **Header** - Multi-color gradient header with logo
+- **Stats** - Player count statistics (Total, Remaining, Assigned, Skipped, Progress %, Initial Points)
+- **Controls** - Pick player, skip player, bid, pass, reset, and undo buttons
+- **CurrentPlayer** - Current player display with bidding form
+- **TeamStatus** - Leaderboard with team cards and rosters
+- **PlayerList** - Grid view of all players with filters
 
 ---
 
 ## ⚙️ Configuration
 
-### Backend Configuration (`backend/app.py`)
+### User Credentials
 
-```python
-CAPTAINS = ["Anshu", "Arunendu", "Avinash", "Priyanko", "Rishav", "Robin"]
-INITIAL_POINTS = 200      # Starting balance per captain
-MIN_PRICE = 5             # Minimum bid price
-MIN_PLAYERS_PER_TEAM = 8  # Minimum players per team
+For **local development**, create `backend/users.json`:
+```json
+{
+  "users": [
+    {
+      "username": "admin",
+      "password": "your_password",
+      "role": "admin"
+    }
+  ]
+}
 ```
+
+For **production deployment**, use environment variables:
+- `AUCTION_ADMIN_USER` - Admin username
+- `AUCTION_ADMIN_PASSWORD` - Admin password
+- `AUCTION_USERS` - JSON array of users (optional)
+
+See deployment guide for details.
+
+### Auction Configuration
+
+Each auction can be configured with:
+- **Season Name** - Display name for the auction
+- **Base Price** - Minimum bid price (default: 5)
+- **Team Size** - Minimum players per team (default: 8)
+- **Initial Points** - Starting balance per captain (default: 200)
+- **Players File** - Custom `players.yaml` file
+- **Captains File** - Custom `captains.yaml` file
+- **Captains List** - List of captain names
 
 ### Data Files
 
-- `players.yaml` - Player list with names and photo paths
-- `captains.yaml` - Captain list with names and photo paths
-- `data/auction_state.json` - Persistent auction state (auto-generated)
+- `players.yaml` - Default player list with names and photo paths
+- `captains.yaml` - Default captain list with names and photo paths
+- `data/auctions/<auction_id>_config.json` - Auction-specific configuration
+- `data/auctions/<auction_id>_players.yaml` - Auction-specific players
+- `data/auctions/<auction_id>_captains.yaml` - Auction-specific captains
+- `data/rooms/<room_id>_state.json` - Auction state (auto-generated)
+
+---
+
+## 📝 Adding Player & Captain Photos
+
+### Player Photos
+
+Update `players.yaml`:
+```yaml
+players:
+  - name: Player Name
+    photo: "/images/players/Player_Name.jpeg"
+  - name: Another Player
+    photo: ""  # Empty for auto-generated avatar
+```
+
+**Photo file naming:** Use underscores (e.g., `Amit_Roy.jpeg`) to match player names.
+
+### Captain Photos
+
+Update `captains.yaml`:
+```yaml
+captains:
+  - name: Anshu
+    photo: "/images/captains/Anshu.png"
+```
+
+**Supported formats:** JPG, JPEG, PNG. Place files in `frontend/public/images/players/` or `frontend/public/images/captains/`.
+
+---
+
+## 🎨 Features in Detail
+
+### Max Bid Calculation
+
+The system automatically calculates the maximum bid a captain can make:
+```
+Max Bid = Balance - (Players Still Needed - 1) × Base Price
+```
+
+This ensures captains always have enough points to complete their team.
+
+### Undo Functionality
+
+If a bid is assigned by mistake:
+1. Click **"Undo Last Bid"** button
+2. The last assignment is rolled back
+3. Player returns to the pool
+4. Captain's balance is restored
+
+### State Persistence
+
+- Auction state automatically saved after each action
+- State persists across server restarts
+- Backup files created before state changes
+- Each auction maintains its own isolated state
 
 ---
 
 ## 🔮 Future Enhancements
 
-- [x] Player statistics dashboard
-- [x] Export teams to CSV
-- [x] Team size limits (minimum 8 players)
-- [x] Captain photos in leaderboard
-- [x] Enhanced stats with skipped count and progress
+- [x] Multi-user authentication
+- [x] Configurable auctions
+- [x] Undo functionality
+- [x] Max bid calculation
+- [x] Initial points configuration
 - [ ] WebSocket support for real-time updates
 - [ ] Player statistics and history
 - [ ] Manual player assignment (search by name)
 - [ ] Auction history and replay
-- [ ] Multi-session support
-
----
-
-## 📋 Current Season 9 Setup
-
-- **Captains:** 6 (Anshu, Arunendu, Avinash, Priyanko, Rishav, Robin)
-- **Players:** 48 (excluding captains)
-- **Team Size:** Minimum 8 players + 1 captain = 9 total per team
-- **Starting Balance:** 200 points per captain
-- **Minimum Bid:** 5 points
-
----
-
-## 👥 Credits
-
-Developed for **SHV Cricket Association — Season 9** 🎉
+- [ ] Email notifications
 
 ---
 
 ## 📄 License
 
 This project is for internal use by SHV Cricket Association.
+
+---
+
+## 📞 Support
+
+For deployment help, see [RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md).

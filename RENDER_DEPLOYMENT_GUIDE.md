@@ -139,16 +139,16 @@ Click **"Advanced"** and add these environment variables:
 
 #### ⚠️ **IMPORTANT: User Credentials (Required)**
 
-You **must** set user credentials. Choose one method:
+You **must** set user credentials for authentication. Choose one method:
 
 **Option A: Admin User Only (Simplest)**
 - `AUCTION_ADMIN_USER` = `admin` (or your preferred username)
 - `AUCTION_ADMIN_PASSWORD` = `your_secure_password_here`
 
 **Option B: Multiple Users (Recommended)**
-- `AUCTION_USERS` = `[{"username":"admin","password":"your_password","role":"admin"}]` (JSON array)
+- `AUCTION_USERS` = `[{"username":"admin","password":"your_password","role":"admin"},{"username":"user1","password":"password1","role":"user"}]` (JSON array)
 
-**📖 For detailed instructions, see:** `RENDER_USER_CREDENTIALS_GUIDE.md`
+**Note:** For production, always use environment variables. Never commit `users.json` to Git.
 
 **To add environment variables:**
 1. Scroll down to **"Environment Variables"** section
@@ -285,12 +285,27 @@ https://shv-auction-frontend.onrender.com,https://your-custom-domain.com
 
 Test these features:
 
+**Authentication:**
+- ✅ **Login screen** appears
+- ✅ **Login works** with your credentials
+- ✅ **Profile menu** (three dots) visible in top-right corner
+
+**Auction Configuration:**
+- ✅ **Create new auction** works
+- ✅ **Configure auction** settings (season name, base price, team size, initial points)
+- ✅ **Upload players/captains** YAML files
+- ✅ **Select existing auction** works
+
+**Auction Operations:**
 - ✅ **Page loads** - Header, stats, and controls visible
 - ✅ **Start Auction** button works
 - ✅ **Player selection** works
-- ✅ **Captain dropdown** appears
+- ✅ **Captain dropdown** appears with max bid information
 - ✅ **Bid assignment** works
-- ✅ **Team status** updates
+- ✅ **Pass button** works
+- ✅ **Undo last bid** works
+- ✅ **Reset auction** works
+- ✅ **Team status** updates in real-time
 
 ### Step 5.3: Check Browser Console
 
@@ -515,13 +530,18 @@ Use this checklist to ensure everything is set up:
 - [ ] Code pushed to GitHub
 - [ ] `gunicorn` in `backend/requirements.txt`
 - [ ] `Procfile` exists in root
-- [ ] `players.yaml` and `captains.yaml` committed
+- [ ] `runtime.txt` exists (Python version)
+- [ ] `players.yaml` and `captains.yaml` committed (default files)
+- [ ] User credentials prepared (for environment variables)
 
 ### Backend Deployment
 - [ ] Backend service created on Render
-- [ ] Build command configured
-- [ ] Start command configured
-- [ ] Environment variables set
+- [ ] Build command configured (`cd backend && pip install -r requirements.txt`)
+- [ ] Start command configured (`cd backend && gunicorn app:app --bind 0.0.0.0:${PORT:-5000} --workers 3 --timeout 120`)
+- [ ] Environment variables set:
+  - [ ] `FLASK_DEBUG=False`
+  - [ ] `ALLOWED_ORIGINS=*` (update after frontend deployment)
+  - [ ] `AUCTION_ADMIN_USER` and `AUCTION_ADMIN_PASSWORD` (or `AUCTION_USERS`)
 - [ ] Backend URL saved
 
 ### Frontend Deployment
@@ -531,11 +551,14 @@ Use this checklist to ensure everything is set up:
 - [ ] `REACT_APP_API_URL` set correctly
 - [ ] Frontend URL saved
 
-### Connection
+### Connection & Testing
 - [ ] Backend CORS updated with frontend URL
 - [ ] Backend redeployed after CORS change
-- [ ] App tested in browser
-- [ ] No errors in console
+- [ ] Login tested with credentials
+- [ ] Auction creation and configuration tested
+- [ ] Full auction flow tested (pick, bid, assign, undo, reset)
+- [ ] No errors in browser console
+- [ ] No errors in backend logs
 
 ---
 

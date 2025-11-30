@@ -385,15 +385,16 @@ def initialize_auction(room_id=DEFAULT_ROOM, auction_id=None):
         state_loaded = load_auction_state(room_id)
         
         if not state_loaded:
-            # Start fresh if no saved state
+            # Start fresh if no saved state - ALL captains get configured initial_points
             players = load_players(auction_id) if auction_id else load_players()
             current_player_names = {p["name"] for p in players}
             auction_state["remaining"] = [p["name"] for p in players]
             auction_state["skipped"] = []
             auction_state["current"] = None
+            # Assign configured initial_points to ALL captains
             auction_state["balances"] = {c: initial_points for c in captains_list}
             auction_state["teams"] = {c: [] for c in captains_list}
-            app.logger.info(f"🚀 Starting fresh auction for room {room_id} with {initial_points} initial points per captain")
+            app.logger.info(f"🚀 Starting fresh auction for room {room_id} with {initial_points} initial points per captain for all {len(captains_list)} captains")
         
         # Validate and sync with current players.yaml
         players = load_players(auction_id) if auction_id else load_players()
@@ -429,13 +430,24 @@ def initialize_auction(room_id=DEFAULT_ROOM, auction_id=None):
             ]
         
         # Ensure all captains have balances - use configured initial_points
+        # When loading saved state, ensure missing/new captains get configured initial_points
+        # Existing captains keep their current balances (preserve auction progress)
         for captain in captains_list:
-            # If captain doesn't exist in balances, set to configured initial_points
-            if captain not in auction_state.get("balances", {}):
+            # If captain doesn't have a balance or balance is None/0, set to configured initial_points
+            current_balance = auction_state.get("balances", {}).get(captain)
+            if captain not in auction_state.get("balances", {}) or current_balance is None or current_balance == 0:
                 auction_state.setdefault("balances", {})[captain] = initial_points
-            # Note: Existing balances are preserved - user can reset auction to apply new initial_points
+                app.logger.info(f"💰 Set balance for captain {captain} to configured initial_points: {initial_points}")
             if captain not in auction_state.get("teams", {}):
                 auction_state.setdefault("teams", {})[captain] = []
+        
+        # Remove any captains from balances/teams that are no longer in the captains_list
+        for captain in list(auction_state.get("balances", {}).keys()):
+            if captain not in captains_list:
+                if captain in auction_state.get("balances", {}):
+                    del auction_state["balances"][captain]
+                if captain in auction_state.get("teams", {}):
+                    del auction_state["teams"][captain]
         
         # Clear current if player no longer exists
         if auction_state.get("current") and auction_state["current"] not in current_player_names:
@@ -1157,14 +1169,16 @@ def reset_auction():
         players = load_players(auction_id) if auction_id else load_players()
         current_player_names = {p["name"] for p in players}
         
-        # Reset all state for this room
+        # Reset all state for this room - ALL captains get configured initial_points
         auction_state = get_room_state(room_id)
         auction_state["remaining"] = [p["name"] for p in players]
         auction_state["skipped"] = []
         auction_state["current"] = None
+        # Assign configured initial_points to ALL captains on reset
         auction_state["balances"] = {c: initial_points for c in captains_list}
         auction_state["teams"] = {c: [] for c in captains_list}
         auction_state["initialized"] = True  # Mark as initialized so it doesn't try to load saved state
+        app.logger.info(f"🔄 Reset auction for room {room_id} - All {len(captains_list)} captains now have {initial_points} initial points")
         
         # Validate teams to remove any invalid players
         for captain, roster in auction_state["teams"].items():
