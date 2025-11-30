@@ -415,6 +415,7 @@ function App() {
           players={players}
           captainsPhotos={status.captainsPhotos || {}}
           minPlayersPerTeam={status.minPlayersPerTeam || 8}
+          initialPoints={status.initialPoints || 200}
         />
 
         <PlayerListModal

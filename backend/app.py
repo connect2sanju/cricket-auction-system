@@ -133,11 +133,22 @@ def save_auction_config(auction_id, config):
         return False
 
 def get_auction_config(auction_id):
-    """Get auction configuration (load from file if not in memory)"""
+    """Get auction configuration (load from file if not in memory or reload if file is newer)"""
     if auction_id not in auction_configs:
         config = load_auction_config(auction_id)
         if config:
+            auction_configs[auction_id] = config
             return config
+        return None
+    
+    # Always reload from file to ensure we have the latest config
+    # This ensures updates are reflected immediately
+    config = load_auction_config(auction_id)
+    if config:
+        auction_configs[auction_id] = config
+        return config
+    
+    # Fallback to cached version if file read fails
     return auction_configs.get(auction_id)
 
 # Load players from YAML for a specific auction
@@ -648,13 +659,9 @@ def create_auction():
         
         # Get team size (minimum players per team)
         team_size = int(request.form.get("team_size", MIN_PLAYERS_PER_TEAM))
-        if team_size < 1:
-            team_size = MIN_PLAYERS_PER_TEAM
         
         # Get initial points (allotted points for each captain)
         initial_points = int(request.form.get("initial_points", INITIAL_POINTS))
-        if initial_points < 1:
-            initial_points = INITIAL_POINTS
         
         # Save configuration
         config = {
@@ -717,12 +724,6 @@ def update_auction_config(auction_id):
         if not season_name:
             return jsonify({"error": "Season name is required"}), 400
         
-        if team_size < 1:
-            return jsonify({"error": "Team size must be at least 1"}), 400
-        
-        if initial_points < 1:
-            return jsonify({"error": "Initial points must be at least 1"}), 400
-        
         # Update files if provided
         players_file = request.files.get("players_file")
         captains_file = request.files.get("captains_file")
@@ -755,6 +756,10 @@ def update_auction_config(auction_id):
             except Exception as e:
                 app.logger.warning(f"Error parsing captains file: {str(e)}")
         
+        # Check if initial_points changed and update balances if auction hasn't started
+        old_initial_points = config.get("initial_points", INITIAL_POINTS)
+        initial_points_changed = (initial_points != old_initial_points)
+        
         # Update configuration
         config["season_name"] = season_name
         config["base_price"] = base_price
@@ -764,7 +769,52 @@ def update_auction_config(auction_id):
         
         save_auction_config(auction_id, config)
         
-        app.logger.info(f"Updated auction config: {auction_id}")
+        # If initial_points changed, update captain balances
+        if initial_points_changed:
+            room_id = get_auction_room_id(auction_id)
+            
+            # Initialize auction state if not already initialized
+            initialize_auction(room_id, auction_id)
+            auction_state = get_room_state(room_id)
+            
+            # Check if auction has started (any players assigned)
+            total_assigned = sum(len(v) for v in auction_state.get("teams", {}).values())
+            captains_list = config.get("captains_list", DEFAULT_CAPTAINS)
+            
+            if total_assigned == 0:
+                # Auction hasn't started - update all balances to new initial_points
+                for captain in captains_list:
+                    auction_state.setdefault("balances", {})[captain] = initial_points
+                save_auction_state(room_id)
+                app.logger.info(f"✅ Updated all {len(captains_list)} captain balances from {old_initial_points} to {initial_points} (auction not started)")
+            else:
+                # Auction has started - update balances for captains who still have original balance
+                # This means they haven't spent anything yet
+                updated_count = 0
+                for captain in captains_list:
+                    assigned_count = len(auction_state.get("teams", {}).get(captain, []))
+                    current_balance = auction_state.get("balances", {}).get(captain)
+                    
+                    # If captain has no assigned players and balance equals old initial_points, update it
+                    if assigned_count == 0 and current_balance == old_initial_points:
+                        auction_state.setdefault("balances", {})[captain] = initial_points
+                        updated_count += 1
+                        app.logger.info(f"Updated balance for {captain} from {old_initial_points} to {initial_points} (no players assigned)")
+                
+                if updated_count > 0:
+                    save_auction_state(room_id)
+                    app.logger.info(f"✅ Updated {updated_count} captain balances from {old_initial_points} to {initial_points} (captains with no assigned players)")
+                else:
+                    app.logger.info(f"ℹ️ Initial points changed from {old_initial_points} to {initial_points}, but all captains have already spent points. Reset auction to apply new initial_points to all.")
+        
+        # Force reload from file to ensure cache is updated
+        # This ensures immediate reflection of changes in get_status
+        reloaded_config = load_auction_config(auction_id)
+        if reloaded_config:
+            auction_configs[auction_id] = reloaded_config
+            config = reloaded_config
+        
+        app.logger.info(f"Updated auction config: {auction_id} - base_price={base_price}, team_size={team_size}, initial_points={initial_points}")
         
         return jsonify({
             "auction_id": auction_id,

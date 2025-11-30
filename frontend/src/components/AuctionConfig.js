@@ -85,20 +85,6 @@ const AuctionConfig = ({ username, onConfigComplete, currentAuctionId }) => {
       return;
     }
 
-    if (basePrice < 1) {
-      setError('Base price must be at least 1');
-      return;
-    }
-
-    if (teamSize < 1) {
-      setError('Team size must be at least 1');
-      return;
-    }
-
-    if (initialPoints < 1) {
-      setError('Initial points must be at least 1');
-      return;
-    }
 
     if (!playersFile && !selectedAuctionId) {
       setError('Please upload a players YAML file or select an existing auction');
@@ -137,10 +123,16 @@ const AuctionConfig = ({ username, onConfigComplete, currentAuctionId }) => {
       }
 
       await fetchAuctions();
-      onConfigComplete(response.data.auction_id, {
+      
+      // Pass full config data including updated values
+      const configData = response.data.config || {
         season_name: auctionSeason.trim(),
-        base_price: basePrice
-      });
+        base_price: basePrice,
+        team_size: teamSize,
+        initial_points: initialPoints
+      };
+      
+      onConfigComplete(response.data.auction_id, configData);
     } catch (err) {
       logger.error('Failed to create/update auction', err);
       setError(err.response?.data?.error || 'Failed to create auction. Please try again.');
@@ -307,7 +299,6 @@ const AuctionConfig = ({ username, onConfigComplete, currentAuctionId }) => {
             <input
               id="basePrice"
               type="number"
-              min="1"
               value={basePrice}
               onChange={(e) => setBasePrice(parseInt(e.target.value) || 5)}
               className="form-input"
@@ -322,8 +313,6 @@ const AuctionConfig = ({ username, onConfigComplete, currentAuctionId }) => {
             <input
               id="teamSize"
               type="number"
-              min="1"
-              max="20"
               value={teamSize}
               onChange={(e) => setTeamSize(parseInt(e.target.value) || 8)}
               className="form-input"
@@ -338,7 +327,6 @@ const AuctionConfig = ({ username, onConfigComplete, currentAuctionId }) => {
             <input
               id="initialPoints"
               type="number"
-              min="1"
               value={initialPoints}
               onChange={(e) => setInitialPoints(parseInt(e.target.value) || 200)}
               className="form-input"
@@ -401,10 +389,28 @@ const AuctionConfig = ({ username, onConfigComplete, currentAuctionId }) => {
               <button
                 type="button"
                 className="config-continue-btn"
-                onClick={() => onConfigComplete(selectedAuctionId, {
-                  season_name: auctionSeason || existingAuctions.find(a => a.auction_id === selectedAuctionId)?.season_name,
-                  base_price: basePrice || existingAuctions.find(a => a.auction_id === selectedAuctionId)?.base_price
-                })}
+                onClick={async () => {
+                  // Fetch latest config before continuing to ensure we have updated values
+                  try {
+                    const configResponse = await axios.get(`${API_BASE_URL}/auctions/${selectedAuctionId}/config`);
+                    const config = configResponse.data;
+                    onConfigComplete(selectedAuctionId, {
+                      season_name: config.season_name || auctionSeason,
+                      base_price: config.base_price || basePrice,
+                      team_size: config.team_size || teamSize,
+                      initial_points: config.initial_points || initialPoints
+                    });
+                  } catch (err) {
+                    logger.error('Failed to fetch config', err);
+                    // Fallback to local values
+                    onConfigComplete(selectedAuctionId, {
+                      season_name: auctionSeason || existingAuctions.find(a => a.auction_id === selectedAuctionId)?.season_name,
+                      base_price: basePrice || existingAuctions.find(a => a.auction_id === selectedAuctionId)?.base_price,
+                      team_size: teamSize,
+                      initial_points: initialPoints
+                    });
+                  }
+                }}
               >
                 Continue with Selected Auction
               </button>

@@ -4,7 +4,7 @@ import { getDefaultPlayerImage } from '../utils/defaultPlayerImage';
 import { announceCaptain } from '../utils/voiceAnnouncement';
 import { fixImagePath } from '../utils/imagePath';
 
-const TeamStatus = ({ teams, balances, captains, players, captainsPhotos = {}, minPlayersPerTeam = 9 }) => {
+const TeamStatus = ({ teams, balances, captains, players, captainsPhotos = {}, minPlayersPerTeam = 9, initialPoints = 200 }) => {
   const [enlargedPhoto, setEnlargedPhoto] = useState(null);
 
   const handleCaptainPhotoClick = (captain, e) => {
@@ -23,15 +23,43 @@ const TeamStatus = ({ teams, balances, captains, players, captainsPhotos = {}, m
       setEnlargedPhoto(null);
     }, 2000);
   };
-  const getStatusColor = (balance) => {
-    if (balance > 100) return '#22c55e';
-    if (balance > 50) return '#f59e0b';
-    return '#dc2626';
+  const getStatusColor = (balance, initialPoints) => {
+    if (initialPoints <= 0) {
+      // Fallback if initialPoints is invalid
+      if (balance > 100) return '#22c55e';
+      if (balance > 50) return '#f59e0b';
+      return '#dc2626';
+    }
+    
+    // Calculate percentage remaining
+    const percentageRemaining = (balance / initialPoints) * 100;
+    
+    // Color based on percentage:
+    // Green: >50% remaining (less than 50% diluted/spent)
+    // Yellow: 25-50% remaining (50-75% diluted/spent)
+    // Red: <25% remaining (more than 75% diluted/spent)
+    if (percentageRemaining > 50) return '#22c55e'; // Green
+    if (percentageRemaining > 25) return '#f59e0b'; // Yellow
+    return '#dc2626'; // Red
   };
 
-  const getStatusEmoji = (balance) => {
-    if (balance > 100) return '🟢';
-    if (balance > 50) return '🟡';
+  const getStatusEmoji = (balance, initialPoints) => {
+    if (initialPoints <= 0) {
+      // Fallback if initialPoints is invalid
+      if (balance > 100) return '🟢';
+      if (balance > 50) return '🟡';
+      return '🔴';
+    }
+    
+    // Calculate percentage remaining
+    const percentageRemaining = (balance / initialPoints) * 100;
+    
+    // Emoji based on percentage:
+    // Green: >50% remaining
+    // Yellow: 25-50% remaining
+    // Red: <25% remaining
+    if (percentageRemaining > 50) return '🟢';
+    if (percentageRemaining > 25) return '🟡';
     return '🔴';
   };
 
@@ -107,8 +135,8 @@ const TeamStatus = ({ teams, balances, captains, players, captainsPhotos = {}, m
                     {captain}
                   </h3>
                 </div>
-                <div className="team-balance" style={{ color: getStatusColor(balance) }}>
-                  <span className="balance-emoji">{getStatusEmoji(balance)}</span>
+                <div className="team-balance" style={{ color: getStatusColor(balance, initialPoints) }}>
+                  <span className="balance-emoji">{getStatusEmoji(balance, initialPoints)}</span>
                   <span className="balance-amount">₹ {balance}</span>
                 </div>
               </div>
