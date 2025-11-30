@@ -319,6 +319,24 @@ def initialize_auction():
         if auction_state["current"] and auction_state["current"] not in current_player_names:
             auction_state["current"] = None
 
+@app.route("/", methods=["GET"])
+def root():
+    """Root endpoint - API information"""
+    return jsonify({
+        "name": "SHV Cricket Auction API",
+        "version": "1.0.0",
+        "status": "running",
+        "endpoints": {
+            "status": "/api/status",
+            "players": "/api/players",
+            "pick": "/api/pick (POST)",
+            "skip": "/api/skip (POST)",
+            "assign": "/api/assign (POST)",
+            "reset": "/api/reset (POST)",
+            "export": "/api/export"
+        }
+    }), 200
+
 @app.route("/api/status", methods=["GET"])
 def get_status():
     try:
