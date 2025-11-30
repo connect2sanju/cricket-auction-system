@@ -428,10 +428,12 @@ def initialize_auction(room_id=DEFAULT_ROOM, auction_id=None):
                 if isinstance(item, dict) and item.get("player") in current_player_names
             ]
         
-        # Ensure all captains have balances
+        # Ensure all captains have balances - use configured initial_points
         for captain in captains_list:
+            # If captain doesn't exist in balances, set to configured initial_points
             if captain not in auction_state.get("balances", {}):
                 auction_state.setdefault("balances", {})[captain] = initial_points
+            # Note: Existing balances are preserved - user can reset auction to apply new initial_points
             if captain not in auction_state.get("teams", {}):
                 auction_state.setdefault("teams", {})[captain] = []
         

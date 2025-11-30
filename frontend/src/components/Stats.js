@@ -9,6 +9,7 @@ const Stats = ({ status }) => {
   const assigned = status?.assigned || 0;
   const skipped = status?.skippedCount || 0;
   const progress = totalPlayers > 0 ? Math.round((assigned / totalPlayers) * 100) : 0;
+  const initialPoints = status?.initialPoints || 200;
 
   return (
     <div className="stats-container">
@@ -49,6 +50,14 @@ const Stats = ({ status }) => {
         <div className="stat-content">
           <div className="stat-value">{progress}%</div>
           <div className="stat-label">Progress</div>
+        </div>
+      </div>
+
+      <div className="stat-card">
+        <div className="stat-icon">💰</div>
+        <div className="stat-content">
+          <div className="stat-value">₹{initialPoints}</div>
+          <div className="stat-label">Initial Points</div>
         </div>
       </div>
     </div>

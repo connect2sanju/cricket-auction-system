@@ -378,7 +378,7 @@ const Controls = ({
                           const playersAlreadyBought = Array.isArray(teamRoster) ? teamRoster.length : 0;
                           return (
                             <option key={captain} value={captain}>
-                              {captain} (₹{balances[captain]} | Max: ₹{maxBid} | Has: {playersAlreadyBought}/8)
+                              {captain} (₹{balances[captain]} | Max: ₹{maxBid} | Has: {playersAlreadyBought}/{minPlayersPerTeam})
                             </option>
                           );
                         })}
@@ -402,14 +402,14 @@ const Controls = ({
                     {/* Max bid hint */}
                     {selectedCaptain && (() => {
                       const maxBid = calculateMaxBid(selectedCaptain);
+                      const teamRoster = teams[selectedCaptain] || [];
+                      const playersAlreadyBought = Array.isArray(teamRoster) ? teamRoster.length : 0;
                       const playersNeeded = getPlayersStillNeeded(selectedCaptain);
                       const reserveCount = Math.max(0, playersNeeded - 1);
                       const reservedAmount = reserveCount * (minPrice || 5);
-                      const teamRoster = teams[selectedCaptain] || [];
-                      const playersAlreadyBought = Array.isArray(teamRoster) ? teamRoster.length : 0;
                       return (
                         <div className="spin-box-max-bid-hint">
-                          💰 Max Bid: ₹{maxBid} (Has {playersAlreadyBought}/8 players | Needs {playersNeeded} more | Reserving ₹{reservedAmount} for {reserveCount} remaining players at ₹{minPrice || 5} each)
+                          💰 Max Bid: ₹{maxBid} (Has {playersAlreadyBought}/{minPlayersPerTeam} players | Needs {playersNeeded} more | Reserving ₹{reservedAmount} for {reserveCount} remaining players at ₹{minPrice || 5} each)
                         </div>
                       );
                     })()}
